@@ -29,7 +29,7 @@ import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-
+import {console} from "forge-std/console.sol";
 /**
  * @title DSCEngine
  * @author Tebbo
@@ -51,7 +51,7 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__TokenAddressesAndPricefeedAddressMustBeTheSameLength();
     error DSCEngine__NotAllowedToken();
     error DSCEngine__TransferFailed();
-    error DSCEngine__BreaksHealtFactor(uint256 healthFactor);
+    error DSCEngine__BreaksHealthFactor(uint256 healthFactor);
     error DSCEngine__MintedFailed();
     error DSCEngine__HealtFactorOK();
     error DSCEngine__HealtFactorNotImproved();
@@ -207,8 +207,10 @@ contract DSCEngine is ReentrancyGuard {
     {
         // get the health factor of the user
         uint256 startingUserHealthFactor = _healthFactor(user);
+        console.log("Starting User Health Factor from DSCEngine contract :", startingUserHealthFactor);
         // check if the user is liquidatable
         if (startingUserHealthFactor >= MINIMUM_HEALTH_FACTOR) {
+        // if (startingUserHealthFactor >= MINIMUM_HEALTH_FACTOR * PRECISION) {
             revert DSCEngine__HealtFactorOK();
         }
         uint256 tokenAmountFromDebtCovered = getTokenAmountFromUsd(collateral, debtToCover);
@@ -220,6 +222,7 @@ contract DSCEngine is ReentrancyGuard {
         _burnDsc(debtToCover, user, msg.sender);
 
         uint256 endingUserHealthFactor = _healthFactor(user);
+        console.log("Ending User Health Factor from DSCEngine contract :", endingUserHealthFactor);
         if (endingUserHealthFactor <= startingUserHealthFactor) {
             revert DSCEngine__HealtFactorNotImproved();
         }
@@ -246,8 +249,15 @@ contract DSCEngine is ReentrancyGuard {
     }
 
     function _redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral, address from, address to)
-        private
+        public
     {
+        if (amountCollateral == 0) {
+        revert DSCEngine__NeedsMoreThanZero();
+    }
+        // check if the token is allowed
+        if (s_priceFeeds[tokenCollateralAddress] == address(0)) {
+            revert DSCEngine__NotAllowedToken();
+        }
         // update the collateral deposited mapping
         s_collateralDeposited[from][tokenCollateralAddress] -= amountCollateral;
         // emit the event
@@ -275,7 +285,7 @@ contract DSCEngine is ReentrancyGuard {
      *
      * @param user address of the user
      * @return health factor of the user
-     * If a user goes below a health factor of 1 , then they can get liquidated
+     * If a user goes below a health factor of 1 , then they can be liquidated.
      */
     function _healthFactor(address user) private view returns (uint256) {
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
@@ -286,7 +296,7 @@ contract DSCEngine is ReentrancyGuard {
     function _revertIfHealthFactorIsBroken(address user) internal view {
         uint256 userHealthFactor = _healthFactor(user);
         if (userHealthFactor < MINIMUM_HEALTH_FACTOR) {
-            revert DSCEngine__BreaksHealtFactor(userHealthFactor);
+            revert DSCEngine__BreaksHealthFactor(userHealthFactor);
         }
     }
 
@@ -312,4 +322,29 @@ contract DSCEngine is ReentrancyGuard {
         (, int256 price,,,) = priceFeed.latestRoundData();
         return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION;
     }
+
+    function getAccountInformation(address user) public view returns (uint256 totalDscMinted, uint256 collateralValueInUsd) {
+        (totalDscMinted, collateralValueInUsd) = _getAccountInformation(user);
+        return (totalDscMinted, collateralValueInUsd);
+    }
+
+    function getTokenPriceFeed(address token) public view returns (address) {
+        return s_priceFeeds[token];
+    }
+
+    function getLiquidationBonus() public pure returns (uint256) {
+        return LIQUIDATION_BONUS;
+    }
+    function getLiquidationPrecision() public pure returns (uint256) {
+        return LIQUIDATION_PRECISION;
+    }
+
+    function getHealthFactor(address user) public view returns (uint256) {
+        return _healthFactor(user);
+    }
+
+    function getMinimumHealthFactor() public pure returns (uint256) {
+        return MINIMUM_HEALTH_FACTOR;
+    }
+
 }
