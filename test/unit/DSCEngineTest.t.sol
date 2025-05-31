@@ -196,55 +196,6 @@ contract DSCEngineTest is Test {
         vm.stopPrank();
     }
 
-    //     function testSuccessfulLiquidation() public depositCollateral {
-    //     uint256 MINT_AMOUNT = 5e18;
-    //     uint256 DEBT_TO_COVER = 2e18;
-
-    //     // Mint DSC to break health factor
-    //     vm.startPrank(USER);
-    //     engine.mintDSC(MINT_AMOUNT);
-    //     vm.stopPrank();
-
-    //         // Debug: Check health factor before price manipulation
-    // uint256 initialHealthFactor = engine.getHealthFactor(USER);
-    // console.log("Initial Health Factor:", initialHealthFactor);
-
-    //    // Debug: Log the minimum health factor
-    // uint256 minimumHealthFactor = engine.getMinimumHealthFactor();
-    // console.log("Minimum Health Factor:", minimumHealthFactor);
-
-    //     // Manipulate price feed to break health factor
-    //     int256 newPrice = 5e7; // Reduce collateral value
-    //     vm.mockCall(
-    //         ethUsdPriceFeed,
-    //         abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
-    //         abi.encode(0, newPrice, 0, 0, 0)
-    //     );
-
-    //      // Debug: Check health factor after price manipulation
-    // uint256 postPriceManipulationHealthFactor = engine.getHealthFactor(USER);
-    // console.log("Post-Price Manipulation Health Factor:", postPriceManipulationHealthFactor);
-
-    //     // Liquidate the user
-    //     vm.startPrank(address(this)); // Liquidator
-    //     uint256 startingLiquidatorBalance = ERC20Mock(weth).balanceOf(address(this));
-    //     engine.liquidate(weth, USER, DEBT_TO_COVER);
-    //     uint256 endingLiquidatorBalance = ERC20Mock(weth).balanceOf(address(this));
-    //     vm.stopPrank();
-
-    //     // Verify liquidator received collateral with bonus
-    //     uint256 liquidationBouns = engine.getLiquidationBonus();
-    //     uint256 liquidationPrecision = engine.getLiquidationPrecision();
-    //     uint256 tokenAmountFromDebtCovered = engine.getTokenAmountFromUsd(weth, DEBT_TO_COVER);
-    //     uint256 bonusCollateral = (tokenAmountFromDebtCovered * liquidationBouns) / liquidationPrecision;
-    //     uint256 totalCollateralRedeemed = tokenAmountFromDebtCovered + bonusCollateral;
-
-    //     assertEq(endingLiquidatorBalance, startingLiquidatorBalance + totalCollateralRedeemed);
-
-    //     // Verify user's health factor improved
-    //     uint256 userHealthFactor = engine.getHealthFactor(USER);
-    //     // uint256 minimumHealthFactor = engine.getMinimumHealthFactor();
-    //     assertGt(userHealthFactor, minimumHealthFactor);
-    // }
-
+    
+ 
 }
