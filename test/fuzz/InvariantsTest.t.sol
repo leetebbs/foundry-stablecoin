@@ -50,6 +50,11 @@ contract Invariant is Test {
         uint256 wethValue = engine.getUsdValue(weth, totalWethDeposied);
         uint256 wbtcValue = engine.getUsdValue(wbtc, totalBtcDeposited);
 
+        console.log("Total Supply: %s", totalSupply);
+        console.log("wethValue: %s", wethValue);
+        console.log("wbtcValue: %s", wbtcValue);
+        console.log("Times mint called", handler.timesMintIsCalled());
+
         assert(wethValue + wbtcValue >= totalSupply);
     }
 }
